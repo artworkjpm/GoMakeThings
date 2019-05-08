@@ -120,11 +120,11 @@
                 cel = document.getElementById('celcius');
             if (!fht || !cel) return;
             if (event.target === fht) {
-                changeToCel = parseInt((fht.value - 32) * 5 / 9, 10);
-                cel.value = changeToCel;
+                changeToCel = (fht.value - 32) * 5 / 9, 10;
+                cel.value = Math.round(changeToCel);
             } else if (event.target === cel) {
-                changeToFht = parseInt((cel.value * 9 / 5) + 32);
-                fht.value = changeToFht;
+                changeToFht = (cel.value * 9 / 5) + 32;
+                fht.value = Math.round(changeToFht);
             }
         })
     </script>

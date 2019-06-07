@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <title>Weather App</title>
+
+    <meta charset="utf-8" />
+
+    <!-- Force latest available IE rendering engine and Chrome Frame (if installed) -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+    <!-- Mobile Screen Resizing -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <style type="text/css">
+      /**
+		 * Add box sizing to everything
+		 * @link http://www.paulirish.com/2012/box-sizing-border-box-ftw/
+		 */
+      *,
+      *:before,
+      *:after {
+        box-sizing: border-box;
+      }
+      /**
+		 * Layout
+		 */
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+          "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+          "Helvetica Neue", sans-serif;
+        font-size: 112.5%;
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 40em;
+        width: 88%;
+      }
+      .text-center {
+        margin-top: 50px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Weather App</h1>
+
+    <div id="app">Checking the weather near you...</div>
+    <div id="location"></div>
+    <div id="weather"></div>
+
+    <script>
+      //we make a pluggin using an IIFE immediately invoked function expression
+      var weather = (function() {
+        "use strict";
+        //make variables
+        var publicAPIs = {};
+        var textHTMLocation = document.getElementById("location");
+        var textHTMWeather = document.getElementById("weather");
+        var userLocation;
+        //create one xhr function
+        var getXHR = function(url, success, error) {
+          // Set up our HTTP request
+          var xhr = new XMLHttpRequest();
+          // Setup our listener to process compeleted requests
+          xhr.onreadystatechange = function() {
+            // Only run if the request is complete
+            if (xhr.readyState !== 4) return;
+            // Process our return data
+            if (xhr.status === 200) {
+              // Run the success callback
+              if (success && typeof success === "function") {
+                success(xhr);
+              }
+            } else {
+              // Run the error callback
+              if (error && typeof error === "function") {
+                error(xhr);
+              }
+            }
+          };
+          // The first argument is the post type (GET, POST, PUT, DELETE, etc.)
+          // The second argument is the endpoint URL
+          xhr.open("GET", url);
+          xhr.send();
+        };
+        publicAPIs.init = function() {
+          getXHR(
+            "https://ipapi.co/json",
+            function(xhr) {
+              // Get the weather for the user's location
+              console.log(xhr.responseText);
+              var text = JSON.parse(xhr.responseText);
+              userLocation = text.city;
+              //DO NESTED API CALL HERE
+              getXHR(
+                `https://api.weatherbit.io/v2.0/current?city=${userLocation}&key=e007e5dd98c64f88b626f204a2b214d2`,
+                function(xhr) {
+                  // Render the weather for the user
+                  console.log(xhr.responseText, userLocation);
+                  var textWeather = JSON.parse(xhr.responseText);
+                  var desc = textWeather.data[0].weather.description;
+                  var temp = textWeather.data[0].temp;
+                  var weatherIcon = textWeather.data[0].weather.icon;
+
+                  var tempText = function() {
+                    if (temp > 20) {
+                      return "Qué calor!";
+                    } else if (temp < 15) {
+                      return "Qué frio!";
+                    } else {
+                      return "No tan frio, no tan calor!";
+                    }
+                  };
+                  textHTMWeather.innerHTML = `<div class="text-center">
+                    <div>Current location: ${userLocation}</div>
+                    <img height="60" width="60" src="https://www.weatherbit.io/static/img/icons/${weatherIcon}.png">
+                    <div>Temp: ${temp}, ${tempText()}</div>
+                    </div>`;
+                },
+                function() {
+                  // If weather isn't found
+                  renderError();
+                }
+              );
+            },
+            function() {
+              // If location isn't found
+              renderError();
+            }
+          );
+        };
+        return publicAPIs;
+      })();
+      // Get the weather
+      weather.init();
+    </script>
+  </body>
+</html>
